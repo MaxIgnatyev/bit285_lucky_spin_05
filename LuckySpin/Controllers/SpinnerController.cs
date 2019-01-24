@@ -10,13 +10,15 @@ namespace LuckySpin.Controllers
     public class SpinnerController : Controller
     {
         Random random;
+        Repository repository;
 
         /***
          * Constructor
          */
-        public SpinnerController()
+        public SpinnerController(Repository repo)
         {
             random = new Random();
+            repository = repo;
         }
 
         /***
@@ -26,13 +28,20 @@ namespace LuckySpin.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-                return View();
+            return View();
         }
 
         [HttpPost]
         public IActionResult Index(Player player)
         {
-            return RedirectToAction("Spin", player);
+            if (ModelState.IsValid)
+            {
+                return RedirectToAction("Spin", player);
+            }
+            else
+            {
+                return View();
+            }
         }
 
         /***
@@ -51,6 +60,7 @@ namespace LuckySpin.Controllers
             };
             spin.IsWinner = (spin.A == spin.Luck || spin.B == spin.Luck || spin.C == spin.Luck);
 
+            repository.AddSpins(spin);
             // Store some View data
             ViewBag.Display = spin.IsWinner ? "block": "none";
             ViewBag.FirstName = player.FirstName;
@@ -64,7 +74,7 @@ namespace LuckySpin.Controllers
         [HttpGet]
         public IActionResult LuckList()
         {
-            return View();
+            return View(repository.Spins);
         }
     }
 }
